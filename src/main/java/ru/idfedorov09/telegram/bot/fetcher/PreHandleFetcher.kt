@@ -37,7 +37,13 @@ class PreHandleFetcher(
     ): InputQuery? {
         val chatId = updatesUtil.getChatId(update) ?: return invalidQuery(exp)
         val userNick = update.message.from.userName
-        val user = userRepository.findByTui(chatId) ?: User(tui = chatId)
+
+        var tui = chatId
+        if(isValidByAdmin(update) && chatId == ControlData.ADMINS_CHAT_ID) {
+            tui = update.callbackQuery.from.id.toString()
+        }
+
+        val user = userRepository.findByTui(tui) ?: User(tui = tui)
             .copy(lastUserNick = userNick)
 
         if (user.isBanned) return invalidQuery(exp)
