@@ -7,5 +7,5 @@ import ru.idfedorov09.telegram.bot.data.enums.BotStage
  */
 @Mutable
 data class ExpContainer(
-    var botStage: BotStage = BotStage.OFFLINE
+    var isValid: Boolean = true
 )
