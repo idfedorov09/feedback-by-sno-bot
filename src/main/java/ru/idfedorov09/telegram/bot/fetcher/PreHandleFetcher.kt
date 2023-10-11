@@ -3,6 +3,7 @@ package ru.idfedorov09.telegram.bot.fetcher
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Update
 import ru.idfedorov09.telegram.bot.data.enums.Action
 import ru.idfedorov09.telegram.bot.data.enums.ControlData
@@ -36,7 +37,20 @@ class PreHandleFetcher(
         exp: ExpContainer,
     ): InputQuery? {
         val chatId = updatesUtil.getChatId(update) ?: return invalidQuery(exp)
+        if (!(chatId != ControlData.ADMINS_CHAT_ID || isValidByAdmin(update))) return invalidQuery(exp)
         var userNick = if (update.hasMessage()) update.message.from.userName else null
+
+        if (update.hasMessage() && update.message.hasText() &&
+            update.message.text.lowercase() == "/start"
+        ) {
+            bot.execute(
+                SendMessage(
+                    chatId,
+                    "Добро пожаловать в бота для обратной связи. Напишите свой вопрос, и мы на него ответим!",
+                ),
+            )
+            return invalidQuery(exp)
+        }
 
         var tui = chatId
         if (isValidByAdmin(update) && chatId == ControlData.ADMINS_CHAT_ID) {
@@ -45,12 +59,9 @@ class PreHandleFetcher(
 
         val user = userRepository.findByTui(tui) ?: User(tui = tui)
             .copy(lastUserNick = userNick)
-
         userNick ?: run { userNick = user.lastUserNick }
-
         if (user.isBanned) return invalidQuery(exp)
 
-        if (!(chatId != ControlData.ADMINS_CHAT_ID || isValidByAdmin(update))) return invalidQuery(exp)
         // сохраняем с обновленным ником (или новой записью)
         userRepository.save(user)
 

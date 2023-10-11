@@ -137,7 +137,7 @@ class ResponseFetcher(
         update: Update,
     ) {
         inputQuery.author.tui ?: return
-        if (!update.hasMessage()) {
+        if (!(update.hasMessage() && update.message.hasText())) {
             bot.execute(
                 SendMessage(
                     inputQuery.author.tui,
