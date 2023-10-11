@@ -51,7 +51,10 @@ class ResponseFetcher(
 
             Action.IGNORE -> ignoreQuestion(inputQuery, bot, exp, update)
             Action.BLOCK_USER -> blockUser(inputQuery, bot, exp, update)
-            else -> return
+            else -> run {
+                log.error("Detected unknown type of action.")
+                return
+            }
         }
     }
 
@@ -117,7 +120,7 @@ class ResponseFetcher(
 
         Thread.sleep(100)
         // TODO: кем проигорен?
-        val newText = "Ответ проигнорирован."
+        val newText = "Ответ проигнорирован пользователем @${inputQuery.author.lastUserNick}."
         bot.execute(
             EditMessageText().also {
                 it.chatId = ControlData.ADMINS_CHAT_ID
@@ -154,7 +157,7 @@ class ResponseFetcher(
         bot.execute(
             SendMessage(
                 query.authorTui,
-                "Получен ответ на ваш вопрос:",
+                "Получен ответ на Ваш вопрос #${query.id}:",
             ),
         )
 
@@ -183,8 +186,8 @@ class ResponseFetcher(
         )
 
         Thread.sleep(100)
-        // TODO: кем выдан?
-        val newText = "Выдан следующий ответ:\n${update.message.text}"
+        // TODO: сделать маркдаун разметку
+        val newText = "Пользователем @${inputQuery.author.lastUserNick} выдан следующий ответ:\n${update.message.text}"
         bot.execute(
             EditMessageText().also {
                 it.chatId = ControlData.ADMINS_CHAT_ID
@@ -215,7 +218,7 @@ class ResponseFetcher(
         bot.execute(
             SendMessage(
                 inputQuery.author.tui,
-                "Напишите мне одним сообщением ответ на нижеприведенное сообщение. " +
+                "Напишите мне одним сообщением ответ на нижеприведенное сообщение (#${query.id}). " +
                     "Обратите внимание, пока принимаются только текстовые сообщения",
             ),
         )
@@ -239,11 +242,21 @@ class ResponseFetcher(
     ) {
         inputQuery.chatId ?: return
         inputQuery.messageId ?: return
+        inputQuery.author.tui ?: return
+
+        val query = registerNewQuery(inputQuery, "0")
+
+        bot.execute(
+            SendMessage(
+                inputQuery.author.tui,
+                "Ваш вопрос #${query.id} отправлен, ожидайте ответа.",
+            ),
+        )
 
         bot.execute(
             SendMessage(
                 ControlData.ADMINS_CHAT_ID,
-                "Получено сообщение от пользователя @${inputQuery.author.lastUserNick}",
+                "Получено сообщение #${query.id} от пользователя @${inputQuery.author.lastUserNick}",
             ),
         )
 
@@ -258,8 +271,6 @@ class ResponseFetcher(
         bot.execute(msg)
 
         Thread.sleep(250)
-
-        val query = registerNewQuery(inputQuery, "0")
 
         val sent = bot.execute(
             SendMessage().also {
