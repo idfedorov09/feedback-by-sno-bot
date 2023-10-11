@@ -61,7 +61,7 @@ class PreHandleFetcher(
             tui = update.callbackQuery.from.id.toString()
         }
 
-        val user = userRepository.findByTui(tui) ?: User(tui = tui)
+        val user = (userRepository.findByTui(tui) ?: User(tui = tui))
             .copy(lastUserNick = userNick)
         userNick ?: run { userNick = user.lastUserNick }
         if (user.isBanned) return invalidQuery(exp)
