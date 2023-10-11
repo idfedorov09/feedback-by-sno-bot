@@ -38,7 +38,11 @@ class PreHandleFetcher(
     ): InputQuery? {
         val chatId = updatesUtil.getChatId(update) ?: return invalidQuery(exp)
         if (!(chatId != ControlData.ADMINS_CHAT_ID || isValidByAdmin(update))) return invalidQuery(exp)
-        var userNick = if (update.hasMessage()) update.message.from.userName else null
+        var userNick = when {
+            update.hasMessage() -> update.message.from.userName
+            update.hasCallbackQuery() -> update.callbackQuery.from.userName
+            else -> null
+        }
 
         if (update.hasMessage() && update.message.hasText() &&
             update.message.text.lowercase() == "/start"
