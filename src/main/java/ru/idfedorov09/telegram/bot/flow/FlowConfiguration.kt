@@ -2,6 +2,7 @@ package ru.idfedorov09.telegram.bot.flow
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import ru.idfedorov09.telegram.bot.fetcher.CallbackAnswerFetcher
 import ru.idfedorov09.telegram.bot.fetcher.PreHandleFetcher
 import ru.idfedorov09.telegram.bot.fetcher.ResponseFetcher
 
@@ -12,6 +13,7 @@ import ru.idfedorov09.telegram.bot.fetcher.ResponseFetcher
 open class FlowConfiguration(
     private val preHandleFetcher: PreHandleFetcher,
     private val responseFetcher: ResponseFetcher,
+    private val callbackAnswerFetcher: CallbackAnswerFetcher,
 ) {
 
     /**
@@ -29,6 +31,7 @@ open class FlowConfiguration(
             fetch(preHandleFetcher)
             whenComplete(condition = { exp.isValid }) {
                 fetch(responseFetcher)
+                whenComplete { fetch(callbackAnswerFetcher) }
             }
             // TODO: добавить фетчер обработки нажатия кнопки
         }
