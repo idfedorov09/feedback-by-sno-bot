@@ -36,15 +36,17 @@ class PreHandleFetcher(
         exp: ExpContainer,
     ): InputQuery? {
         val chatId = updatesUtil.getChatId(update) ?: return invalidQuery(exp)
-        val userNick = update.message.from.userName
+        var userNick = if (update.hasMessage()) update.message.from.userName else null
 
         var tui = chatId
-        if(isValidByAdmin(update) && chatId == ControlData.ADMINS_CHAT_ID) {
+        if (isValidByAdmin(update) && chatId == ControlData.ADMINS_CHAT_ID) {
             tui = update.callbackQuery.from.id.toString()
         }
 
         val user = userRepository.findByTui(tui) ?: User(tui = tui)
             .copy(lastUserNick = userNick)
+
+        userNick ?: run { userNick = user.lastUserNick }
 
         if (user.isBanned) return invalidQuery(exp)
 
@@ -53,10 +55,10 @@ class PreHandleFetcher(
         userRepository.save(user)
 
         return InputQuery(
-            authorId = user.id,
-            action = chooseAction(update, chatId),
+            author = user,
+            action = chooseAction(update, chatId, user),
             chatId = chatId,
-            messageId = update.message.messageId,
+            messageId = if (update.hasMessage()) update.message.messageId else null,
         )
     }
 
@@ -69,8 +71,12 @@ class PreHandleFetcher(
     private fun chooseAction(
         update: Update,
         chatId: String,
+        user: User,
     ): Action {
-        if (chatId != ControlData.ADMINS_CHAT_ID) return Action.SEND_QUESTION
+        if (chatId != ControlData.ADMINS_CHAT_ID) {
+            if (user.currentQueryId != null) return Action.SEND_ANSWER
+            return Action.SEND_QUESTION
+        }
         val callbackData = update.callbackQuery.data
 
         return when {

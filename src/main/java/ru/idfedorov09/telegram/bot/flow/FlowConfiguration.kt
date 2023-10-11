@@ -30,6 +30,7 @@ open class FlowConfiguration(
             whenComplete(condition = { exp.isValid }) {
                 fetch(responseFetcher)
             }
+            // TODO: добавить фетчер обработки нажатия кнопки
         }
     }
 }

@@ -14,8 +14,12 @@ data class UserQuery(
     val id: Long? = null,
 
     @Column(name = "author_id")
-    val authorId: String? = null,
+    val authorTui: String? = null,
 
     @Column(name = "message_id")
     val messageId: String? = null,
+
+    // id сообщения-пульта
+    @Column(name = "console_id", columnDefinition = "TEXT")
+    val consoleMessageId: String? = null,
 )
