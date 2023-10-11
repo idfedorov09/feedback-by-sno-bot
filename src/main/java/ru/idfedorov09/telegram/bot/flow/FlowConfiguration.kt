@@ -3,6 +3,7 @@ package ru.idfedorov09.telegram.bot.flow
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import ru.idfedorov09.telegram.bot.fetcher.PreHandleFetcher
+import ru.idfedorov09.telegram.bot.fetcher.ResponseFetcher
 
 /**
  * Основной класс, в котором строится последовательность вычислений (граф)
@@ -10,6 +11,7 @@ import ru.idfedorov09.telegram.bot.fetcher.PreHandleFetcher
 @Configuration
 open class FlowConfiguration(
     private val preHandleFetcher: PreHandleFetcher,
+    private val responseFetcher: ResponseFetcher,
 ) {
 
     /**
@@ -25,8 +27,8 @@ open class FlowConfiguration(
     private fun FlowBuilder.buildFlow() {
         group {
             fetch(preHandleFetcher)
-            whenComplete (condition = { exp.hasChatId }){
-                fetch(TODO())
+            whenComplete(condition = { exp.isValid }) {
+                fetch(responseFetcher)
             }
         }
     }
