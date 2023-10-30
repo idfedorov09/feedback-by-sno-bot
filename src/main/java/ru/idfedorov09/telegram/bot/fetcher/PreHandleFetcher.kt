@@ -50,7 +50,8 @@ class PreHandleFetcher(
             bot.execute(
                 SendMessage(
                     chatId,
-                    "Добро пожаловать в бота для обратной связи. Напишите свой вопрос, и мы на него ответим!",
+                    "\uD83D\uDFE2 Добро пожаловать в бота для обратной связи.\n" +
+                        "✍ Напишите свой вопрос, и мы на него ответим!",
                 ),
             )
             return invalidQuery(exp)
@@ -61,10 +62,22 @@ class PreHandleFetcher(
             tui = update.callbackQuery.from.id.toString()
         }
 
-        val user = (userRepository.findByTui(tui) ?: User(tui = tui))
+        val preUser = userRepository.findByTui(tui)
+        val user = (preUser ?: User(tui = tui))
             .copy(lastUserNick = userNick)
+
         userNick ?: run { userNick = user.lastUserNick }
         if (user.isBanned) return invalidQuery(exp)
+
+        if (preUser == null && chatId == ControlData.ADMINS_CHAT_ID) {
+            bot.execute(
+                SendMessage(
+                    ControlData.ADMINS_CHAT_ID,
+                    "\uD83E\uDEF8 @{user.lastUserNick}, напишите мне что-нибудь в лс, пожалуйста, перед тем как что-то делать.",
+                ),
+            )
+            return invalidQuery(exp)
+        }
 
         // сохраняем с обновленным ником (или новой записью)
         userRepository.save(user)

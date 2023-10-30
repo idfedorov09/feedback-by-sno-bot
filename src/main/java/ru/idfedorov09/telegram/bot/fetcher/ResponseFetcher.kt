@@ -92,7 +92,7 @@ class ResponseFetcher(
 
         Thread.sleep(100)
         // TODO: кем проигорен?
-        val newText = "Пользователь заблокирован."
+        val newText = "\uD83D\uDD34 Пользователь заблокирован."
         bot.execute(
             EditMessageText().also {
                 it.chatId = ControlData.ADMINS_CHAT_ID
@@ -120,7 +120,7 @@ class ResponseFetcher(
 
         Thread.sleep(100)
         // TODO: кем проигорен?
-        val newText = "Ответ проигнорирован пользователем @${inputQuery.author.lastUserNick}."
+        val newText = "\uD83D\uDFE1 Ответ проигнорирован пользователем @${inputQuery.author.lastUserNick}."
         bot.execute(
             EditMessageText().also {
                 it.chatId = ControlData.ADMINS_CHAT_ID
@@ -141,12 +141,13 @@ class ResponseFetcher(
             bot.execute(
                 SendMessage(
                     inputQuery.author.tui,
-                    "Принимаются только текстовые сообщения.",
+                    "❗\uFE0F Принимаются только текстовые сообщения.",
                 ),
             )
             return
         }
 
+        inputQuery.author.currentQueryId ?: return
         val query = userQueryRepository.findById(inputQuery.author.currentQueryId).get()
         query.authorTui ?: return
 
@@ -157,7 +158,7 @@ class ResponseFetcher(
         bot.execute(
             SendMessage(
                 query.authorTui,
-                "Получен ответ на Ваш вопрос #${query.id}:",
+                "✅ Получен ответ на Ваш вопрос #${query.id}:",
             ),
         )
 
@@ -173,7 +174,7 @@ class ResponseFetcher(
         bot.execute(
             SendMessage(
                 inputQuery.author.tui,
-                "Ваш ответ передан.",
+                "✅ Ваш ответ передан.",
             ),
         )
 
@@ -187,7 +188,7 @@ class ResponseFetcher(
 
         Thread.sleep(100)
         // TODO: сделать маркдаун разметку
-        val newText = "Пользователем @${inputQuery.author.lastUserNick} выдан следующий ответ:\n${update.message.text}"
+        val newText = "\uD83D\uDFE2 Пользователем @${inputQuery.author.lastUserNick} выдан следующий ответ:\n${update.message.text}"
         bot.execute(
             EditMessageText().also {
                 it.chatId = ControlData.ADMINS_CHAT_ID
@@ -218,8 +219,8 @@ class ResponseFetcher(
         bot.execute(
             SendMessage(
                 inputQuery.author.tui,
-                "Напишите мне одним сообщением ответ на нижеприведенное сообщение (#${query.id}). " +
-                    "Обратите внимание, пока принимаются только текстовые сообщения",
+                "\uD83D\uDCAD Напишите мне одним сообщением ответ на нижеприведенное сообщение (#${query.id}). " +
+                    "\uD83D\uDD38 Обратите внимание, пока принимаются только текстовые сообщения",
             ),
         )
 
@@ -249,14 +250,14 @@ class ResponseFetcher(
         bot.execute(
             SendMessage(
                 inputQuery.author.tui,
-                "Ваш вопрос #${query.id} отправлен, ожидайте ответа.",
+                "\uD83D\uDD38 Ваш вопрос #${query.id} отправлен, ожидайте ответа.",
             ),
         )
 
         bot.execute(
             SendMessage(
                 ControlData.ADMINS_CHAT_ID,
-                "Получено сообщение #${query.id} от пользователя @${inputQuery.author.lastUserNick}",
+                "\uD83D\uDCE4 Получено сообщение #${query.id} от пользователя @${inputQuery.author.lastUserNick}",
             ),
         )
 
@@ -275,13 +276,13 @@ class ResponseFetcher(
         val sent = bot.execute(
             SendMessage().also {
                 it.chatId = ControlData.ADMINS_CHAT_ID
-                it.text = "Выберите действие."
+                it.text = "\uD83D\uDC40 Выберите действие."
                 it.replyMarkup = createKeyboard(
                     listOf(
-                        listOf(InlineKeyboardButton("Ответ").also { it.callbackData = "ans ${query.id}" }),
+                        listOf(InlineKeyboardButton("\uD83D\uDCAC Ответ").also { it.callbackData = "ans ${query.id}" }),
                         listOf(
-                            InlineKeyboardButton("Игнор").also { it.callbackData = "ignore ${query.id}" },
-                            InlineKeyboardButton("Бан").also { it.callbackData = "ban ${query.id}" },
+                            InlineKeyboardButton("\uD83D\uDD07 Игнор").also { it.callbackData = "ignore ${query.id}" },
+                            InlineKeyboardButton("\uD83D\uDEAF Бан").also { it.callbackData = "ban ${query.id}" },
                         ),
                     ),
                 )
