@@ -91,8 +91,7 @@ class ResponseFetcher(
         )
 
         Thread.sleep(100)
-        // TODO: кем проигорен?
-        val newText = "\uD83D\uDD34 Пользователь заблокирован."
+        val newText = "\uD83D\uDD34 Пользователь заблокирован по воле @${inputQuery.author.lastUserNick}."
         bot.execute(
             EditMessageText().also {
                 it.chatId = ControlData.ADMINS_CHAT_ID
@@ -158,7 +157,7 @@ class ResponseFetcher(
         bot.execute(
             SendMessage(
                 query.authorTui,
-                "✅ Получен ответ на Ваш вопрос #${query.id}:",
+                "Получен ответ на Ваш вопрос #${query.id}:",
             ),
         )
 
@@ -219,7 +218,7 @@ class ResponseFetcher(
         bot.execute(
             SendMessage(
                 inputQuery.author.tui,
-                "\uD83D\uDCAD Напишите мне одним сообщением ответ на нижеприведенное сообщение (#${query.id}). " +
+                "Напишите мне одним сообщением ответ на нижеприведенное сообщение (#${query.id}).\n" +
                     "\uD83D\uDD38 Обратите внимание, пока принимаются только текстовые сообщения",
             ),
         )
@@ -250,7 +249,7 @@ class ResponseFetcher(
         bot.execute(
             SendMessage(
                 inputQuery.author.tui,
-                "\uD83D\uDD38 Ваш вопрос #${query.id} отправлен, ожидайте ответа.",
+                "Ваш вопрос #${query.id} отправлен, ожидайте ответа.",
             ),
         )
 
