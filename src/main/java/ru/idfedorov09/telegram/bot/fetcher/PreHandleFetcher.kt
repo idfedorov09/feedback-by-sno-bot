@@ -9,6 +9,7 @@ import ru.idfedorov09.telegram.bot.data.enums.Action
 import ru.idfedorov09.telegram.bot.data.enums.ControlData
 import ru.idfedorov09.telegram.bot.data.model.InputQuery
 import ru.idfedorov09.telegram.bot.data.model.User
+import ru.idfedorov09.telegram.bot.data.repo.UserQueryRepository
 import ru.idfedorov09.telegram.bot.data.repo.UserRepository
 import ru.idfedorov09.telegram.bot.executor.TelegramPollingBot
 import ru.idfedorov09.telegram.bot.fetcher.general.GeneralFetcher
@@ -20,6 +21,7 @@ import ru.idfedorov09.telegram.bot.util.UpdatesUtil
 class PreHandleFetcher(
     private val updatesUtil: UpdatesUtil,
     private val userRepository: UserRepository,
+    private val userQueryRepository: UserQueryRepository,
 ) : GeneralFetcher() {
     companion object {
         private val log = LoggerFactory.getLogger(this.javaClass)
@@ -44,6 +46,21 @@ class PreHandleFetcher(
             else -> null
         }
 
+        var tui = chatId
+        if (isValidByAdmin(update) && chatId == ControlData.ADMINS_CHAT_ID) {
+            tui = update.callbackQuery.from.id.toString()
+        }
+
+        val preUser = userRepository.findByTui(tui)
+        val user = (preUser ?: User(tui = tui))
+            .copy(lastUserNick = userNick)
+
+        userNick ?: run { userNick = user.lastUserNick }
+        if (user.isBanned) return invalidQuery(exp)
+
+        // сохраняем с обновленным ником (или новой записью)
+        userRepository.save(user)
+
         if (update.hasMessage() && update.message.hasText() &&
             update.message.text.lowercase() == "/start"
         ) {
@@ -57,30 +74,17 @@ class PreHandleFetcher(
             return invalidQuery(exp)
         }
 
-        var tui = chatId
-        if (isValidByAdmin(update) && chatId == ControlData.ADMINS_CHAT_ID) {
-            tui = update.callbackQuery.from.id.toString()
-        }
+        val haveBotMessage = userQueryRepository.existsByAuthorTui(tui) || preUser != null
 
-        val preUser = userRepository.findByTui(tui)
-        val user = (preUser ?: User(tui = tui))
-            .copy(lastUserNick = userNick)
-
-        userNick ?: run { userNick = user.lastUserNick }
-        if (user.isBanned) return invalidQuery(exp)
-
-        if (preUser == null && chatId == ControlData.ADMINS_CHAT_ID) {
+        if (!haveBotMessage && chatId == ControlData.ADMINS_CHAT_ID) {
             bot.execute(
                 SendMessage(
                     ControlData.ADMINS_CHAT_ID,
-                    "\uD83E\uDEF8 @{user.lastUserNick}, напишите мне что-нибудь в лс, пожалуйста, перед тем как что-то делать.",
+                    "\uD83E\uDEF8 @${user.lastUserNick}, напишите мне что-нибудь в лс, пожалуйста, перед тем как что-то делать.",
                 ),
             )
             return invalidQuery(exp)
         }
-
-        // сохраняем с обновленным ником (или новой записью)
-        userRepository.save(user)
 
         return InputQuery(
             author = user,
